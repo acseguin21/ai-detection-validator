@@ -1,0 +1,14 @@
+# Example configuration file for Cybersecurity Detection Framework
+# This YAML file contains detection parameters for AI-powered feedback
+
+# The title of the detection rule
+title: "Suspicious PowerShell Execution with Encoded Commands"
+
+# Description of what the detection is looking for
+description: "Detects PowerShell execution with base64 encoded commands that may indicate obfuscated malicious activity"
+
+# The SQL search query for the detection
+sql_search: "SELECT * FROM security_logs WHERE process_name = 'powershell.exe' AND command_line LIKE '%base64%' AND timestamp >= NOW() - INTERVAL 1 HOUR"
+
+# The source log table to search
+source_table: "security_logs"
