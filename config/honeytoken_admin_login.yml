@@ -1,0 +1,6 @@
+# Data Exfiltration Detection Configuration
+title: "Honey Token Admin User Login"
+description: "Identifies potential login attempts to the admin user of the honey token"
+sql_search: "SELECT * FROM network_logs WHERE source_ip = '127.0.0.1' AND dest_ip = '127.0.0.1' AND timestamp >= NOW() - INTERVAL 1 HOUR"
+source_table: "network_logs"
+

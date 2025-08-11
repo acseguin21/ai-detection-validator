@@ -4,6 +4,7 @@ import os
 import google.generativeai as genai
 import yaml
 from dotenv import load_dotenv
+from typing import Tuple, Dict, Any
 
 # Load environment variables from .env file
 load_dotenv()
@@ -29,6 +30,150 @@ load_dotenv()
 # 1. Get your API key from https://makersuite.google.com/app/apikey
 # 2. Set it as an environment variable: export GEMINI_API_KEY="your-api-key-here"
 # 3. Or create a .env file with: GEMINI_API_KEY=your-api-key-here
+
+def create_border(text: str, char: str = "═", width: int = 80) -> str:
+    """Create a bordered text block."""
+    border = char * width
+    return f"{border}\n{text}\n{border}"
+
+def create_section_header(title: str, char: str = "━", width: int = 80) -> str:
+    """Create a section header with decorative elements."""
+    padding = (width - len(title) - 4) // 2
+    left_pad = char * padding
+    right_pad = char * (width - len(title) - 4 - padding)
+    return f"{left_pad} {title} {right_pad}"
+
+def create_info_box(title: str, content: str, width: int = 80) -> str:
+    """Create a formatted information box."""
+    box_top = "┌" + "─" * (width - 2) + "┐"
+    box_bottom = "└" + "─" * (width - 2) + "┘"
+    
+    # Format the title
+    title_line = f"│ {title:<{width-4}} │"
+    
+    # Format the content with word wrapping
+    content_lines = []
+    words = content.split()
+    current_line = ""
+    
+    for word in words:
+        if len(current_line + " " + word) <= width - 6:
+            current_line += (" " + word) if current_line else word
+        else:
+            if current_line:
+                content_lines.append(f"│ {current_line:<{width-4}} │")
+            current_line = word
+    
+    if current_line:
+        content_lines.append(f"│ {current_line:<{width-4}} │")
+    
+    return "\n".join([box_top, title_line, "├" + "─" * (width - 2) + "┤"] + content_lines + [box_bottom])
+
+def create_prompt_box(prompt: str, width: int = 80) -> str:
+    """Create a formatted prompt display box."""
+    box_top = "╔" + "═" * (width - 2) + "╗"
+    box_bottom = "╚" + "═" * (width - 2) + "╝"
+    
+    # Split prompt into lines that fit within width
+    lines = []
+    words = prompt.split()
+    current_line = ""
+    
+    for word in words:
+        if len(current_line + " " + word) <= width - 6:
+            current_line += (" " + word) if current_line else word
+        else:
+            if current_line:
+                lines.append(f"║ {current_line:<{width-4}} ║")
+            current_line = word
+    
+    if current_line:
+        lines.append(f"║ {current_line:<{width-4}} ║")
+    
+    return "\n".join([box_top] + lines + [box_bottom])
+
+def create_feedback_section(feedback: str, width: int = 80) -> str:
+    """Create a formatted feedback section."""
+    box_top = "╭" + "─" * (width - 2) + "╮"
+    box_bottom = "╰" + "─" * (width - 2) + "╯"
+    
+    # Split feedback into numbered points
+    lines = feedback.strip().split('\n')
+    formatted_lines = []
+    
+    for line in lines:
+        line = line.strip()
+        if line:
+            # Check if it's a numbered point
+            if line.startswith(('1.', '2.', '3.')):
+                formatted_lines.append(f"│ {line:<{width-4}} │")
+            else:
+                formatted_lines.append(f"│ {line:<{width-4}} │")
+    
+    return "\n".join([box_top] + formatted_lines + [box_bottom])
+
+def print_header() -> None:
+    """Print the main application header."""
+    header = """
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    🔒 AI DETECTION VALIDATOR v1.0 🔒                        ║
+║                                                                              ║
+║              AI-Powered Cybersecurity Detection Framework                    ║
+║                    Powered by Google Gemini AI                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+"""
+    print(header)
+
+def print_detection_info(config: Dict[str, Any]) -> None:
+    """Print detection information in a formatted way."""
+    print(create_section_header("📋 DETECTION CONFIGURATION", "━", 80))
+    print()
+    
+    # Create info boxes for each field
+    print(create_info_box("🎯 Title", config['title']))
+    print()
+    print(create_info_box("📝 Description", config['description']))
+    print()
+    print(create_info_box("🔍 Source Table", config['source_table']))
+    print()
+    print(create_info_box("💻 SQL Search Query", config['sql_search']))
+    print()
+
+def print_prompt_section(prompt: str, model: str) -> None:
+    """Print the generated prompt in a formatted way."""
+    print(create_section_header("🤖 AI PROMPT GENERATION", "━", 80))
+    print(f"📡 Sending request to '{model}' model...")
+    print()
+    print("📤 Generated Prompt:")
+    print(create_prompt_box(prompt))
+    print()
+
+def print_feedback_section(feedback: str) -> None:
+    """Print the AI feedback in a formatted way."""
+    print(create_section_header("🎯 AI FEEDBACK & RECOMMENDATIONS", "━", 80))
+    print(create_feedback_section(feedback))
+    print()
+
+def print_usage_info(response) -> None:
+    """Print token usage information."""
+    if hasattr(response, 'usage_metadata'):
+        usage = response.usage_metadata
+        print(create_section_header("📊 USAGE STATISTICS", "━", 80))
+        usage_box = f"Prompt Tokens: {usage.prompt_token_count} | Response Tokens: {usage.candidates_token_count}"
+        print(create_info_box("Token Usage", usage_box))
+        print()
+
+def print_footer() -> None:
+    """Print the application footer."""
+    footer = """
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                              🎉 ANALYSIS COMPLETE 🎉                        ║
+║                                                                              ║
+║              Your detection has been analyzed by AI!                         ║
+║              Review the feedback above to improve your detection rules.      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+"""
+    print(footer)
 
 def validate_api_key(api_key):
     """
@@ -145,38 +290,26 @@ def main():
         print("Available models: gemini-1.5-flash, gemini-1.5-pro, gemini-1.0-pro")
         sys.exit(1)
 
-    print("🔒 Cybersecurity Detection Framework - AI Feedback Generator")
-    print("=" * 60)
-    print(f"📋 Detection Title: {config['title']}")
-    print(f"📝 Description: {config['description']}")
-    print(f"🔍 Source Table: {config['source_table']}")
-    print(f"💻 SQL Search: {config['sql_search']}")
-    print("=" * 60)
-    print(f"\n🤖 Sending prompt to '{args.model}' for AI feedback...")
-    print("\n📤 Generated Prompt:")
-    print("-" * 40)
-    print(final_prompt)
-    print("-" * 40)
+    print_header()
+    print_detection_info(config)
+    print_prompt_section(final_prompt, args.model)
 
     try:
         # Generate content from the model
         response = model.generate_content(final_prompt)
 
         # Print the model's response text
-        print("\n🎯 AI Feedback for Detection Improvement:")
-        print("=" * 60)
-        print(response.text)
-        print("=" * 60)
+        print_feedback_section(response.text)
         
         # Print usage information if available
-        if hasattr(response, 'usage_metadata'):
-            usage = response.usage_metadata
-            print(f"\n📊 Token Usage: {usage.prompt_token_count} prompt tokens, {usage.candidates_token_count} response tokens")
-            
+        print_usage_info(response)
+        
     except Exception as e:
         print(f"Error getting a response from the model: {e}")
         print("Please check your API key and internet connection.")
         sys.exit(1)
+
+    print_footer()
 
 if __name__ == "__main__":
     main()
