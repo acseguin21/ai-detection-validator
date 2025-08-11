@@ -1,0 +1,5 @@
+# Data Exfiltration Detection Configuration
+title: "Large Data Transfer to External Destination"
+description: "Identifies potential data exfiltration by detecting unusually large data transfers to external or suspicious destinations"
+sql_search: "SELECT source_ip, dest_ip, bytes_transferred, timestamp FROM network_logs WHERE bytes_transferred > 1000000000 AND dest_ip NOT IN (SELECT ip FROM whitelist_ips) AND timestamp >= NOW() - INTERVAL 1 HOUR"
+source_table: "network_logs"

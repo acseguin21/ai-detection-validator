@@ -1,0 +1,5 @@
+# Brute Force Attack Detection Configuration
+title: "Multiple Failed Login Attempts from Single IP"
+description: "Detects potential brute force attacks by monitoring multiple failed authentication attempts from the same source IP address within a short time window"
+sql_search: "SELECT source_ip, COUNT(*) as failed_attempts FROM auth_logs WHERE event_type = 'login_failed' AND timestamp >= NOW() - INTERVAL 15 MINUTES GROUP BY source_ip HAVING COUNT(*) > 5"
+source_table: "auth_logs"

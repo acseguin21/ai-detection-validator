@@ -1,0 +1,174 @@
+stages:
+  - security
+  - test
+  - build
+  - deploy
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+
+# Cache pip dependencies
+cache:
+  paths:
+    - .pip-cache/
+    - venv/
+
+# Security scanning stage
+security:scan:
+  stage: security
+  image: python:3.11-slim
+  before_script:
+    - python -m venv venv
+    - source venv/bin/activate
+    - pip install --cache-dir $PIP_CACHE_DIR -r requirements-dev.txt
+  script:
+    - source venv/bin/activate
+    # Security scanning with bandit
+    - bandit -r src/ -f json -o bandit-report.json || true
+    # Dependency vulnerability scanning
+    - safety check --json --output safety-report.json || true
+    # YAML security scanning
+    - python -c "import yaml; yaml.safe_load(open('config/example_config.yml'))"
+  artifacts:
+    reports:
+      security: bandit-report.json
+    paths:
+      - bandit-report.json
+      - safety-report.json
+    expire_in: 1 week
+  allow_failure: false
+
+# Code quality checks
+code:quality:
+  stage: security
+  image: python:3.11-slim
+  before_script:
+    - python -m venv venv
+    - source venv/bin/activate
+    - pip install --cache-dir $PIP_CACHE_DIR -r requirements-dev.txt
+  script:
+    - source venv/bin/activate
+    # Code formatting check
+    - black --check --diff src/ tests/
+    # Import sorting check
+    - isort --check-only --diff src/ tests/
+    # Linting
+    - flake8 src/ tests/ --max-line-length=88 --extend-ignore=E203,W503
+    # Type checking
+    - mypy src/ --ignore-missing-imports
+  allow_failure: false
+
+# Unit testing
+test:unit:
+  stage: test
+  image: python:3.11-slim
+  before_script:
+    - python -m venv venv
+    - source venv/bin/activate
+    - pip install --cache-dir $PIP_CACHE_DIR -r requirements-dev.txt
+  script:
+    - source venv/bin/activate
+    - pytest tests/ --cov=src --cov-report=xml --cov-report=html --junit-xml=test-results.xml
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+      junit: test-results.xml
+    paths:
+      - coverage.xml
+      - htmlcov/
+      - test-results.xml
+    expire_in: 1 week
+  allow_failure: false
+
+# Integration testing
+test:integration:
+  stage: test
+  image: python:3.11-slim
+  before_script:
+    - python -m venv venv
+    - source venv/bin/activate
+    - pip install --cache-dir $PIP_CACHE_DIR -r requirements-dev.txt
+  script:
+    - source venv/bin/activate
+    - python -m pytest tests/integration/ -v
+  only:
+    - main
+    - develop
+  allow_failure: true
+
+# Docker build
+build:docker:
+  stage: build
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker build -t $CI_REGISTRY_IMAGE:latest .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE:latest
+  only:
+    - main
+    - develop
+  tags:
+    - docker
+
+# Deploy to staging
+deploy:staging:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl
+  script:
+    - echo "Deploying to staging environment..."
+    - curl -X POST $STAGING_WEBHOOK_URL -H "Content-Type: application/json" -d "{\"commit\": \"$CI_COMMIT_SHA\", \"environment\": \"staging\"}"
+  environment:
+    name: staging
+    url: https://staging.yourapp.com
+  only:
+    - develop
+  when: manual
+
+# Deploy to production
+deploy:production:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl
+  script:
+    - echo "Deploying to production environment..."
+    - curl -X POST $PRODUCTION_WEBHOOK_URL -H "Content-Type: application/json" -d "{\"commit\": \"$CI_COMMIT_SHA\", \"environment\": \"production\"}"
+  environment:
+    name: production
+    url: https://yourapp.com
+  only:
+    - main
+  when: manual
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+
+# Security policy compliance
+compliance:check:
+  stage: security
+  image: python:3.11-slim
+  before_script:
+    - python -m venv venv
+    - source venv/bin/activate
+    - pip install --cache-dir $PIP_CACHE_DIR -r requirements-dev.txt
+  script:
+    - source venv/bin/activate
+    # Check for hardcoded secrets
+    - python -c "import re; import os; [print(f'Potential secret in {f}') for f in os.listdir('.') if f.endswith('.py') and any(secret in open(f).read() for secret in ['password', 'secret', 'key', 'token'])]" || true
+    # Check for proper error handling
+    - python -c "import ast; import os; [print(f'File {f} needs error handling review') for f in os.listdir('src/') if f.endswith('.py') and 'try:' not in open(f).read()]" || true
+  allow_failure: true
+  only:
+    - main
+    - develop

@@ -1,0 +1,15 @@
+# Core dependencies
+google-generativeai>=0.3.0
+PyYAML>=6.0.1
+
+# Security and validation
+cryptography>=41.0.0
+python-dotenv>=1.0.0
+
+# Logging and monitoring
+structlog>=23.1.0
+
+# Version constraints for security
+# These versions have known security fixes
+requests>=2.31.0
+urllib3>=2.0.0

@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      target: development
+    container_name: detection-ai-app
+    volumes:
+      - ./src:/app/src:ro
+      - ./config:/app/config:ro
+      - ./tests:/app/tests:ro
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DETECTION_CONFIG=${DETECTION_CONFIG:-example_config.yml}
+    working_dir: /app
+    command: ["python", "src/detection_test_script.py", "--yaml-file", "/app/config/${DETECTION_CONFIG}"]
+    networks:
+      - app-network
+    restart: "no"
+
+  app-testing:
+    build:
+      context: .
+      target: testing
+    container_name: detection-ai-testing
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+    environment:
+      - PYTHONPATH=/app
+    working_dir: /app
+    command: ["pytest", "tests/", "-v", "--cov=src", "--cov-report=html"]
+    networks:
+      - app-network
+    profiles:
+      - testing
+
+  app-production:
+    build:
+      context: .
+      target: production
+    container_name: detection-ai-production
+    volumes:
+      - ./config:/app/config:ro
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DETECTION_CONFIG=${DETECTION_CONFIG:-example_config.yml}
+    working_dir: /app
+    command: ["python", "src/detection_test_script.py", "--yaml-file", "/app/config/${DETECTION_CONFIG}"]
+    networks:
+      - app-network
+    profiles:
+      - production
+    restart: unless-stopped
+
+  security-scan:
+    image: aquasec/trivy:latest
+    container_name: security-scan
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./security-reports:/reports
+    command: >
+      image --format json --output /reports/trivy-report.json
+      detection-ai-app:latest
+    networks:
+      - app-network
+    profiles:
+      - security
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  security-reports:
