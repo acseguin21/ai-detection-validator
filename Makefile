@@ -13,16 +13,17 @@
 # Default target
 help:
 	@echo "Available commands:"
-	@echo "  install      - Install dependencies"
-	@echo "  test         - Run tests"
-	@echo "  lint         - Run linting and code quality checks"
-	@echo "  format       - Format code with black and isort"
-	@echo "  security     - Run security scans"
-	@echo "  clean        - Clean up temporary files"
-	@echo "  docker-build - Build Docker image"
-	@echo "  docker-run   - Run Docker container"
-	@echo "  docker-test  - Run tests in Docker"
-	@echo "  deploy       - Deploy to production"
+	@echo "  install         - Install dependencies"
+	@echo "  test            - Run tests"
+	@echo "  lint            - Run linting and code quality checks"
+	@echo "  format          - Format code with black and isort"
+	@echo "  security        - Run security scans (bandit, safety)"
+	@echo "  security-scan   - Run comprehensive security check (includes secret detection)"
+	@echo "  clean           - Clean up temporary files"
+	@echo "  docker-build    - Build Docker image"
+	@echo "  docker-run      - Run Docker container"
+	@echo "  docker-test     - Run tests in Docker"
+	@echo "  deploy          - Deploy to production"
 
 # Install dependencies
 install:
@@ -55,6 +56,37 @@ security:
 	bandit -r src/ -f json -o bandit-report.json
 	safety check --json --output safety-report.json
 	@echo "Security scan reports generated: bandit-report.json, safety-report.json"
+
+# Run comprehensive security check
+security-scan:
+	@echo "🔒 Running comprehensive security check..."
+	@echo "Checking for hardcoded secrets..."
+	@if [ -f "scripts/pre-commit-hook.sh" ]; then \
+		echo "✅ Pre-commit hook found"; \
+	else \
+		echo "⚠️  Pre-commit hook not found"; \
+	fi
+	@echo "Checking for potential API keys..."
+	@if grep -r "AIza[0-9A-Za-z_-]\{35\}" src/ tests/ 2>/dev/null; then \
+		echo "❌ Potential API keys found in source code!"; \
+		exit 1; \
+	else \
+		echo "✅ No potential API keys found in source code."; \
+	fi
+	@echo "Checking for hardcoded secrets..."
+	@if grep -r "password.*=.*['\"][^'\"]\{10,\}" src/ tests/ 2>/dev/null; then \
+		echo "❌ Potential hardcoded secrets found!"; \
+		exit 1; \
+	else \
+		echo "✅ No potential hardcoded secrets found."; \
+	fi
+	@echo "Checking for test API keys..."
+	@if grep -r "test_api_key_for_testing_purposes_only_12345" src/ tests/ 2>/dev/null; then \
+		echo "✅ Test API keys found (this is expected)"; \
+	else \
+		echo "⚠️  No test API keys found"; \
+	fi
+	@echo "✅ Comprehensive security check completed!"
 
 # Clean up temporary files
 clean:

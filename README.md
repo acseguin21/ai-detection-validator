@@ -122,6 +122,39 @@ ai-detection-validator/
 - **Input validation and sanitization**
 - **Automated security scanning**
 - **Pre-commit security hooks**
+- **Comprehensive secret detection**
+
+### **Security Best Practices**
+
+1. **Never commit API keys or secrets** - Use environment variables or .env files
+2. **Run security scans** - Use `make security-scan` to check for hardcoded secrets
+3. **Set up pre-commit hooks** - Install the security hook to prevent accidental commits of secrets
+
+### **Setting Up Security Hooks**
+
+```bash
+# Make the pre-commit hook executable
+chmod +x scripts/pre-commit-hook.sh
+
+# Copy to .git/hooks/ (optional - for automatic execution)
+cp scripts/pre-commit-hook.sh .git/hooks/pre-commit
+
+# Run security scan manually
+make security-scan
+```
+
+### **Security Commands**
+
+```bash
+# Run comprehensive security check
+make security-scan
+
+# Check for potential secrets
+grep -r "AIza[0-9A-Za-z_-]\{35\}" src/ tests/
+
+# Validate no hardcoded secrets
+grep -r "password.*=.*['\"][^'\"]\{10,\}" src/ tests/
+```
 
 ## 🤝 **Contributing**
 

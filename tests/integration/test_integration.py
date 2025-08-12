@@ -5,6 +5,9 @@ import yaml
 from unittest.mock import patch, MagicMock
 from src.detection_test_script import main
 
+# Secure test constants - never use real API keys in tests
+TEST_API_KEY = "test_api_key_for_testing_purposes_only_12345"
+
 
 class TestIntegration:
     """Integration tests for the Detection AI Script."""
@@ -41,7 +44,7 @@ class TestIntegration:
         mock_model_class.return_value = mock_model
         
         # Set environment variable
-        os.environ['GEMINI_API_KEY'] = 'AIzaSyC1234567890abcdefghijklmnopqrstuvwxyz'
+        os.environ['GEMINI_API_KEY'] = TEST_API_KEY
         
         # Mock sys.argv
         with patch('sys.argv', ['script', '--yaml-file', self.config_file]):
@@ -71,7 +74,7 @@ class TestIntegration:
         mock_model_class.return_value = mock_model
         
         # Set environment variable
-        os.environ['GEMINI_API_KEY'] = 'AIzaSyC1234567890abcdefghijklmnopqrstuvwxyz'
+        os.environ['GEMINI_API_KEY'] = TEST_API_KEY
         
         # Mock sys.argv with custom model
         with patch('sys.argv', ['script', '--yaml-file', self.config_file, '--model', 'gemini-1.5-pro']):
@@ -96,7 +99,7 @@ class TestIntegration:
         os.environ.pop('GEMINI_API_KEY', None)
         
         # Mock sys.argv with API key argument
-        with patch('sys.argv', ['script', '--yaml-file', self.config_file, '--api-key', 'AIzaSyC1234567890abcdefghijklmnopqrstuvwxyz']):
+        with patch('sys.argv', ['script', '--yaml-file', self.config_file, '--api-key', TEST_API_KEY]):
             main()
         
         # Verify API key was used
@@ -122,7 +125,7 @@ class TestIntegration:
     def test_environment_variable_integration(self):
         """Test environment variable integration."""
         # Set test environment variable
-        test_key = 'AIzaSyC1234567890abcdefghijklmnopqrstuvwxyz'
+        test_key = TEST_API_KEY
         os.environ['GEMINI_API_KEY'] = test_key
         
         # Verify environment variable is set
@@ -140,7 +143,7 @@ class TestIntegration:
         mock_configure.side_effect = Exception("Integration test error")
         
         # Set environment variable
-        os.environ['GEMINI_API_KEY'] = 'AIzaSyC1234567890abcdefghijklmnopqrstuvwxyz'
+        os.environ['GEMINI_API_KEY'] = TEST_API_KEY
         
         # Mock sys.argv
         with patch('sys.argv', ['script', '--yaml-file', self.config_file]):

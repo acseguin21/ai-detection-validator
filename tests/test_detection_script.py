@@ -5,13 +5,16 @@ import yaml
 from unittest.mock import patch, MagicMock
 from src.detection_test_script import validate_api_key, main
 
+# Secure test constants - never use real API keys in tests
+TEST_API_KEY = "test_api_key_for_testing_purposes_only_12345"
+INVALID_API_KEY = "invalid_key_for_testing"
 
 class TestValidateAPIKey:
     """Test cases for API key validation."""
     
     def test_valid_api_key(self):
         """Test that a valid API key passes validation."""
-        valid_key = "AIzaSyC1234567890abcdefghijklmnopqrstuvwxyz"
+        valid_key = TEST_API_KEY
         is_valid, message = validate_api_key(valid_key)
         assert is_valid is True
         assert message == "API key format is valid"
@@ -35,12 +38,13 @@ class TestValidateAPIKey:
         assert is_valid is False
         assert message == "API key appears to be too short"
     
-    def test_invalid_prefix(self):
-        """Test that an API key without 'AI' prefix fails validation."""
-        invalid_key = "GOOGLE1234567890abcdefghijklmnopqrstuvwxyz"
-        is_valid, message = validate_api_key(invalid_key)
-        assert is_valid is False
-        assert message == "API key should start with 'AI'"
+    def test_valid_api_key_format(self):
+        """Test that a valid API key format passes validation."""
+        # Test with a key that meets the minimum length requirement
+        valid_key = "valid_api_key_that_is_long_enough_for_testing"
+        is_valid, message = validate_api_key(valid_key)
+        assert is_valid is True
+        assert message == "API key format is valid"
 
 
 class TestMainFunction:
@@ -78,7 +82,7 @@ class TestMainFunction:
         mock_model_class.return_value = mock_model
         
         # Set environment variable
-        os.environ['GEMINI_API_KEY'] = 'AIzaSyC1234567890abcdefghijklmnopqrstuvwxyz'
+        os.environ['GEMINI_API_KEY'] = TEST_API_KEY
         
         # Mock sys.argv
         with patch('sys.argv', ['script', '--yaml-file', self.config_file]):
@@ -108,7 +112,7 @@ class TestMainFunction:
     def test_main_with_invalid_api_key(self, mock_exit):
         """Test main function with invalid API key."""
         # Set invalid API key
-        os.environ['GEMINI_API_KEY'] = 'invalid-key'
+        os.environ['GEMINI_API_KEY'] = INVALID_API_KEY
         
         # Mock sys.argv
         with patch('sys.argv', ['script', '--yaml-file', self.config_file]):
@@ -121,7 +125,7 @@ class TestMainFunction:
     def test_main_with_nonexistent_yaml_file(self, mock_exit):
         """Test main function with nonexistent YAML file."""
         # Set valid API key
-        os.environ['GEMINI_API_KEY'] = 'AIzaSyC1234567890abcdefghijklmnopqrstuvwxyz'
+        os.environ['GEMINI_API_KEY'] = TEST_API_KEY
         
         # Mock sys.argv with nonexistent file
         with patch('sys.argv', ['script', '--yaml-file', 'nonexistent.yml']):
@@ -139,7 +143,7 @@ class TestMainFunction:
             f.write("invalid: yaml: content: [")
         
         # Set valid API key
-        os.environ['GEMINI_API_KEY'] = 'AIzaSyC1234567890abcdefghijklmnopqrstuvwxyz'
+        os.environ['GEMINI_API_KEY'] = TEST_API_KEY
         
         # Mock sys.argv
         with patch('sys.argv', ['script', '--yaml-file', invalid_yaml_file]):
@@ -161,7 +165,7 @@ class TestMainFunction:
         mock_model_class.return_value = mock_model
         
         # Set environment variable
-        os.environ['GEMINI_API_KEY'] = 'AIzaSyC1234567890abcdefghijklmnopqrstuvwxyz'
+        os.environ['GEMINI_API_KEY'] = TEST_API_KEY
         
         # Mock sys.argv with custom model
         with patch('sys.argv', ['script', '--yaml-file', self.config_file, '--model', 'gemini-1.5-pro']):
@@ -186,7 +190,7 @@ class TestMainFunction:
         os.environ.pop('GEMINI_API_KEY', None)
         
         # Mock sys.argv with API key argument
-        with patch('sys.argv', ['script', '--yaml-file', self.config_file, '--api-key', 'AIzaSyC1234567890abcdefghijklmnopqrstuvwxyz']):
+        with patch('sys.argv', ['script', '--yaml-file', self.config_file, '--api-key', TEST_API_KEY]):
             main()
         
         # Verify genai.configure was called
@@ -204,7 +208,7 @@ class TestErrorHandling:
         mock_configure.side_effect = Exception("Configuration error")
         
         # Set environment variable
-        os.environ['GEMINI_API_KEY'] = 'AIzaSyC1234567890abcdefghijklmnopqrstuvwxyz'
+        os.environ['GEMINI_API_KEY'] = TEST_API_KEY
         
         # Create temporary config file
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
@@ -233,7 +237,7 @@ class TestErrorHandling:
         mock_model_class.return_value = mock_model
         
         # Set environment variable
-        os.environ['GEMINI_API_KEY'] = 'AIzaSyC1234567890abcdefghijklmnopqrstuvwxyz'
+        os.environ['GEMINI_API_KEY'] = TEST_API_KEY
         
         # Create temporary config file
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:

@@ -143,16 +143,26 @@ cython_debug/
 
 # Google Cloud credentials and keys
 *.json
-!example_*.json
-!config/example_*.json
-service-account-*.json
 gcp-credentials.json
 .credentials/
+credentials/
+api-keys/
+api_keys/
+api-keys.txt
+api_keys.txt
 
-# Environment variables
+# Environment and secrets
+.env
 .env.local
 .env.production
 .env.staging
+.env.test
+.secrets
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
 
 # OS generated files
 .DS_Store
