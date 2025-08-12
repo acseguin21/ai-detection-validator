@@ -9,10 +9,17 @@ from typing import Tuple, Dict, Any
 # Load environment variables from .env file
 load_dotenv()
 
+# =============================================================================
+# AI Detection Validator v1.0
+# 
+# Author: Andre Seguin (acseguin21@gmail.com)
+# Location: Calgary, Alberta, Canada 🇨🇦
+# 
 # This script is part of a Cybersecurity Detection Framework that uses AI
 # to provide feedback on detection rules to improve coverage and quality.
 # It accepts a YAML file as input containing detection parameters and
 # generates AI-powered feedback for detection improvement.
+# =============================================================================
 #
 # To install the required libraries, run:
 # pip install google-generativeai pyyaml python-dotenv
@@ -185,9 +192,7 @@ def validate_api_key(api_key):
     if len(api_key) < 20:
         return False, "API key appears to be too short"
     
-    if not api_key.startswith('AI'):
-        return False, "API key should start with 'AI'"
-    
+    # Remove the incorrect 'AI' prefix check as Google Gemini API keys don't have a standard format
     return True, "API key format is valid"
 
 def validate_detection_config(config):
@@ -287,7 +292,7 @@ def main():
         model = genai.GenerativeModel(args.model)
     except Exception as e:
         print(f"Error initializing model '{args.model}': {e}")
-        print("Available models: gemini-1.5-flash, gemini-1.5-pro, gemini-1.0-pro")
+        print(f"Please ensure '{args.model}' is a valid Gemini model name.")
         sys.exit(1)
 
     print_header()
@@ -297,6 +302,12 @@ def main():
     try:
         # Generate content from the model
         response = model.generate_content(final_prompt)
+
+        # Validate the response structure before using it
+        if not response or not hasattr(response, 'text'):
+            print("Error: Unexpected response format from AI model")
+            print("Please try again or check your API configuration.")
+            sys.exit(1)
 
         # Print the model's response text
         print_feedback_section(response.text)

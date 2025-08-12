@@ -2,6 +2,8 @@
 
 This document outlines the security measures and best practices for the Detection AI Check Script project.
 
+**Project Maintainer**: Andre Seguin (acseguin21@gmail.com) - Calgary, Alberta, Canada 🇨🇦
+
 ## 🔐 API Key Security
 
 ### Gemini AI API Key Management

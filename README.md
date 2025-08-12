@@ -137,10 +137,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 **Acknowledgments**
 
+- **Andre Seguin** - Lead developer and cybersecurity enthusiast from Calgary, Alberta, Canada 🇨🇦
 - Google Gemini AI for providing the AI capabilities
 - The cybersecurity community for feedback and testing
 - Open source contributors who made this project possible
 
 ---
 
-**Built with ❤️ for the cybersecurity community**
+**Built with ❤️ for the cybersecurity community by Andre Seguin from Calgary, AB**

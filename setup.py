@@ -19,16 +19,16 @@ def read_requirements():
 setup(
     name="detection-ai-check-script",
     version="1.0.0",
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="Andre Seguin",
+    author_email="acseguin21@gmail.com",
     description="A secure Python application for interacting with Google Gemini AI",
     long_description=read_readme(),
     long_description_content_type="text/markdown",
-    url="https://gitlab.com/yourusername/detection-ai-check-script",
+    url="https://github.com/acseguin21/ai-detection-validator",
     project_urls={
-        "Bug Tracker": "https://gitlab.com/yourusername/detection-ai-check-script/issues",
-        "Documentation": "https://gitlab.com/yourusername/detection-ai-check-script/wikis",
-        "Source Code": "https://gitlab.com/yourusername/detection-ai-check-script",
+        "Bug Tracker": "https://github.com/acseguin21/ai-detection-validator/issues",
+        "Documentation": "https://github.com/acseguin21/ai-detection-validator",
+        "Source Code": "https://github.com/acseguin21/ai-detection-validator",
     },
     classifiers=[
         "Development Status :: 5 - Production/Stable",

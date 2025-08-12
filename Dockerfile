@@ -1,3 +1,13 @@
+# =============================================================================
+# AI Detection Validator - Dockerfile
+# 
+# Author: Andre Seguin (acseguin21@gmail.com)
+# Location: Calgary, Alberta, Canada 🇨🇦
+# 
+# Multi-stage Docker build for the AI Detection Validator project
+# Includes development, testing, and production stages
+# =============================================================================
+
 # Use official Python runtime as base image
 FROM python:3.11-slim as base
 

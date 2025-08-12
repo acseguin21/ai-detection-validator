@@ -1,3 +1,13 @@
+# =============================================================================
+# AI Detection Validator - Makefile
+# 
+# Author: Andre Seguin (acseguin21@gmail.com)
+# Location: Calgary, Alberta, Canada 🇨🇦
+# 
+# This Makefile provides common development and deployment commands
+# for the AI Detection Validator project.
+# =============================================================================
+
 .PHONY: help install test lint format security clean docker-build docker-run docker-test deploy
 
 # Default target
